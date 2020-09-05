@@ -7,7 +7,7 @@ import {
   Doc,
   punctuate,
   hcat,
-} from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.0.1/mod.ts";
+} from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.1.0/mod.ts";
 
 export type Definition = {
   name: string;
@@ -61,10 +61,8 @@ export class ValueOption extends Option {
 
   show(): Doc {
     return vcat([
-      hcat(
-        punctuate(text(", "), this.tags.map((t) => text(t).p(text("=Value")))),
-      ),
-      nest(4, text(this.help)),
+      hcat(punctuate(", ", this.tags.map((t) => text(t).p("=Value")))),
+      nest(4, this.help),
     ]);
   }
 
@@ -119,8 +117,8 @@ export class FlagOption extends Option {
 
   show(): Doc {
     return vcat([
-      hcat(punctuate(text(", "), this.tags.map(text))),
-      nest(4, text(this.help)),
+      hcat(punctuate(", ", this.tags)),
+      nest(4, this.help),
     ]);
   }
 
@@ -193,32 +191,30 @@ function reportErrorAndTerminate(errorMsg: string, cli: Definition): void {
 function show(cli: Definition): Promise<void> {
   return render(
     vcat([
-      text(cli.help),
-      text(""),
-      text("USAGE:"),
+      cli.help,
+      "",
+      "USAGE:",
       nest(
         4,
         text(cli.name)
-          .pp((cli.options.length == 0) ? empty : text("{OPTION}"))
-          .pp((cli.cmds.length == 0) ? empty : text("[COMMAND]")),
+          .pp((cli.options.length == 0) ? empty : "{OPTION}")
+          .pp((cli.cmds.length == 0) ? empty : "[COMMAND]"),
       ),
       (cli.options.length == 0) ? empty : vcat(
         [
-          text(""),
-          text("OPTION:"),
+          "",
+          "OPTION:",
           nest(4, vcat(cli.options.flatMap((o) => o.show()))),
         ],
       ),
       (cli.cmds.length == 0) ? empty : vcat(
         [
-          text(""),
-          text("COMMAND:"),
+          "",
+          "COMMAND:",
           nest(
             4,
             vcat(
-              cli.cmds.flatMap((cmd) =>
-                text(cmd.name).p(nest(20, text(cmd.help)))
-              ),
+              cli.cmds.flatMap((cmd) => text(cmd.name).p(nest(20, cmd.help))),
             ),
           ),
         ],
@@ -341,23 +337,23 @@ export class ValueCommand extends Command {
       : this.showValue.name;
 
     return vcat([
-      text("USAGE:"),
+      "USAGE:",
       nest(
         4,
-        text(this.name).pp(
-          (this.options.length == 0) ? empty : text("{OPTION}"),
-        ).pp(text(usageName)),
+        text(this.name).pp((this.options.length == 0) ? empty : "{OPTION}").pp(
+          usageName,
+        ),
       ),
       (this.options.length == 0) ? empty : vcat(
         [
-          text(""),
-          text("OPTION:"),
+          "",
+          "OPTION:",
           nest(4, vcat(this.options.flatMap((o) => o.show()))),
         ],
       ),
-      text(""),
-      text(this.showValue.name),
-      nest(4, text(this.showValue.help)),
+      "",
+      this.showValue.name,
+      nest(4, this.showValue.help),
     ]);
   }
 }
