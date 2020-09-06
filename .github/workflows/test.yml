@@ -24,6 +24,5 @@ jobs:
       - name: Lint Console.CLI
         run: deno fmt --check
       - name: Build Console.CLI
-        run: deno run --reload mod.ts
-      - name: Test Console.CLI
-        run: deno test --allow-none
+        run: deno run --reload mod.ts help
+        
