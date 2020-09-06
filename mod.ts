@@ -1,13 +1,4 @@
-import {
-  text,
-  render,
-  vcat,
-  nest,
-  empty,
-  Doc,
-  punctuate,
-  hcat,
-} from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.0.1/mod.ts";
+import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.1.0/mod.ts";
 
 export type Definition = {
   name: string;
@@ -37,7 +28,7 @@ export function process(cli: Definition): void {
 }
 
 export abstract class Option {
-  abstract show(): Doc;
+  abstract show(): PP.Doc;
   abstract canDo(args: Array<string>): boolean;
   abstract doNow(
     cli: Definition,
@@ -59,12 +50,10 @@ export class ValueOption extends Option {
     this.help = help;
   }
 
-  show(): Doc {
-    return vcat([
-      hcat(
-        punctuate(text(", "), this.tags.map((t) => text(t).p(text("=Value")))),
-      ),
-      nest(4, text(this.help)),
+  show(): PP.Doc {
+    return PP.vcat([
+      PP.hcat(PP.punctuate(", ", this.tags.map((t) => `${t}=Value`))),
+      PP.nest(4, this.help),
     ]);
   }
 
@@ -117,10 +106,10 @@ export class FlagOption extends Option {
     this.help = help;
   }
 
-  show(): Doc {
-    return vcat([
-      hcat(punctuate(text(", "), this.tags.map(text))),
-      nest(4, text(this.help)),
+  show(): PP.Doc {
+    return PP.vcat([
+      PP.hcat(PP.punctuate(", ", this.tags)),
+      PP.nest(4, this.help),
     ]);
   }
 
@@ -163,10 +152,10 @@ export class DoOption extends Option {
     this.action = action;
   }
 
-  show(): Doc {
-    return vcat([
-      hcat(punctuate(text(", "), this.tags.map(text))),
-      nest(4, text(this.help)),
+  show(): PP.Doc {
+    return PP.vcat([
+      PP.hcat(PP.punctuate(", ", this.tags)),
+      PP.nest(4, this.help),
     ]);
   }
 
@@ -191,33 +180,33 @@ function reportErrorAndTerminate(errorMsg: string, cli: Definition): void {
 }
 
 function show(cli: Definition): Promise<void> {
-  return render(
-    vcat([
-      text(cli.help),
-      text(""),
-      text("USAGE:"),
-      nest(
+  return PP.render(
+    PP.vcat([
+      cli.help,
+      "",
+      "USAGE:",
+      PP.nest(
         4,
-        text(cli.name)
-          .pp((cli.options.length == 0) ? empty : text("{OPTION}"))
-          .pp((cli.cmds.length == 0) ? empty : text("[COMMAND]")),
+        PP.text(cli.name)
+          .pp((cli.options.length == 0) ? PP.empty : "{OPTION}")
+          .pp((cli.cmds.length == 0) ? PP.empty : "[COMMAND]"),
       ),
-      (cli.options.length == 0) ? empty : vcat(
+      (cli.options.length == 0) ? PP.empty : PP.vcat(
         [
-          text(""),
-          text("OPTION:"),
-          nest(4, vcat(cli.options.flatMap((o) => o.show()))),
+          "",
+          "OPTION:",
+          PP.nest(4, PP.vcat(cli.options.flatMap((o) => o.show()))),
         ],
       ),
-      (cli.cmds.length == 0) ? empty : vcat(
+      (cli.cmds.length == 0) ? PP.empty : PP.vcat(
         [
-          text(""),
-          text("COMMAND:"),
-          nest(
+          "",
+          "COMMAND:",
+          PP.nest(
             4,
-            vcat(
+            PP.vcat(
               cli.cmds.flatMap((cmd) =>
-                text(cmd.name).p(nest(20, text(cmd.help)))
+                PP.text(cmd.name).p(PP.nest(20, cmd.help))
               ),
             ),
           ),
@@ -262,7 +251,7 @@ export abstract class Command {
     values: Map<string, undefined>,
   ): void;
 
-  abstract show(): Doc;
+  abstract show(): PP.Doc;
 }
 
 function processOptions(
@@ -335,29 +324,29 @@ export class ValueCommand extends Command {
     }
   }
 
-  show(): Doc {
+  show(): PP.Doc {
     const usageName = this.showValue.optional
       ? `[${this.showValue.name}]`
       : this.showValue.name;
 
-    return vcat([
-      text("USAGE:"),
-      nest(
+    return PP.vcat([
+      "USAGE:",
+      PP.nest(
         4,
-        text(this.name).pp(
-          (this.options.length == 0) ? empty : text("{OPTION}"),
-        ).pp(text(usageName)),
+        PP.text(this.name).pp(
+          (this.options.length == 0) ? PP.empty : "{OPTION}",
+        ).pp(usageName),
       ),
-      (this.options.length == 0) ? empty : vcat(
+      (this.options.length == 0) ? PP.empty : PP.vcat(
         [
-          text(""),
-          text("OPTION:"),
-          nest(4, vcat(this.options.flatMap((o) => o.show()))),
+          "",
+          "OPTION:",
+          PP.nest(4, PP.vcat(this.options.flatMap((o) => o.show()))),
         ],
       ),
-      text(""),
-      text(this.showValue.name),
-      nest(4, text(this.showValue.help)),
+      "",
+      this.showValue.name,
+      PP.nest(4, this.showValue.help),
     ]);
   }
 }
@@ -384,7 +373,7 @@ export const helpCmd = new ValueCommand(
       if (cmd == null) {
         reportErrorAndTerminate(`Unknown command ${value}`, cli);
       } else {
-        render(cmd.show(), Deno.stdout);
+        PP.render(cmd.show(), Deno.stdout);
       }
     }
   },
