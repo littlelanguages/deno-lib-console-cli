@@ -1,4 +1,4 @@
-import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.1.0/mod.ts";
+import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.2.0/mod.ts";
 
 export type Definition = {
   name: string;
