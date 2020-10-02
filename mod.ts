@@ -1,4 +1,4 @@
-import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.3.0/mod.ts";
+import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.3.1/mod.ts";
 
 export type Definition = {
   name: string;
@@ -374,7 +374,7 @@ export const helpCmd = new ValueCommand(
       if (cmd == null) {
         reportErrorAndTerminate(`Unknown command ${value}`, cli);
       } else {
-        PP.render(cmd.show(), Deno.stdout);
+        PP.render(PP.vcat([cmd.show(), ""]), Deno.stdout);
       }
     }
   },
