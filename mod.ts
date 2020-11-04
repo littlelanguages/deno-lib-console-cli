@@ -1,4 +1,4 @@
-import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.3.1/mod.ts";
+import * as PP from "https://raw.githubusercontent.com/littlelanguages/deno-lib-text-prettyprint/0.3.2/mod.ts";
 
 export type Definition = {
   name: string;
@@ -13,12 +13,12 @@ export function process(cli: Definition): void {
 
   processOptions(cli, cli.options, args, values);
 
-  if (args.length == 0) {
+  if (args.length === 0) {
     reportErrorAndTerminate("Invalid arguments - no command specified", cli);
   } else {
     const cmd = cli.cmds.find((c) => c.canDo(args));
 
-    if (cmd == undefined) {
+    if (cmd === undefined) {
       reportErrorAndTerminate(`Invalid command ${args[0]}`, cli);
     } else {
       args.splice(0, 1);
@@ -70,7 +70,7 @@ export class ValueOption extends Option {
     const indexOfEqual = value.indexOf("=");
 
     values.set(
-      dropWhile(this.tags[0], (c) => c == "-"),
+      dropWhile(this.tags[0], (c) => c === "-"),
       value.substring(indexOfEqual + 1),
     );
     args.splice(0, 1);
@@ -90,7 +90,7 @@ function dropWhile(s: string, p: (s: string) => boolean): string {
     }
   }
 
-  return (index == 0) ? s : s.substring(index);
+  return (index === 0) ? s : s.substring(index);
 }
 
 export class FlagOption extends Option {
@@ -114,7 +114,7 @@ export class FlagOption extends Option {
   }
 
   canDo(args: Array<string>): boolean {
-    return this.tags.some((t) => t == args[0]);
+    return this.tags.some((t) => t === args[0]);
   }
 
   doNow(
@@ -123,7 +123,7 @@ export class FlagOption extends Option {
     values: Map<string, unknown>,
   ): Promise<void> {
     args.splice(0, 1);
-    values.set(dropWhile(this.tags[0], (c) => c == "-"), true);
+    values.set(dropWhile(this.tags[0], (c) => c === "-"), true);
     return Promise.resolve();
   }
 }
@@ -160,7 +160,7 @@ export class DoOption extends Option {
   }
 
   canDo(args: Array<string>): boolean {
-    return this.tags.some((t) => t == args[0]);
+    return this.tags.some((t) => t === args[0]);
   }
 
   doNow(
@@ -187,18 +187,22 @@ function show(cli: Definition): Promise<void> {
       "USAGE:",
       PP.nest(
         4,
-        PP.text(cli.name)
-          .pp((cli.options.length == 0) ? PP.empty : "{OPTION}")
-          .pp((cli.cmds.length == 0) ? PP.empty : "[COMMAND]"),
+        PP.hsep(
+          [
+            PP.text(cli.name),
+            cli.options.length === 0 ? PP.empty : "{OPTION}",
+            cli.cmds.length === 0 ? PP.empty : "[COMMAND]",
+          ],
+        ),
       ),
-      (cli.options.length == 0) ? PP.empty : PP.vcat(
+      (cli.options.length === 0) ? PP.empty : PP.vcat(
         [
           "",
           "OPTION:",
           PP.nest(4, PP.vcat(cli.options.flatMap((o) => o.show()))),
         ],
       ),
-      (cli.cmds.length == 0) ? PP.empty : PP.vcat(
+      (cli.cmds.length === 0) ? PP.empty : PP.vcat(
         [
           "",
           "COMMAND:",
@@ -206,7 +210,7 @@ function show(cli: Definition): Promise<void> {
             4,
             PP.vcat(
               cli.cmds.flatMap((cmd) =>
-                PP.text(cmd.name).p(PP.nest(20, cmd.help))
+                PP.p(PP.text(cmd.name), PP.nest(20, cmd.help))
               ),
             ),
           ),
@@ -262,14 +266,14 @@ function processOptions(
   values: Map<string, undefined>,
 ): void {
   while (args.length > 0 && args[0].startsWith("-")) {
-    if (args[0] == "--") {
+    if (args[0] === "--") {
       args.splice(0, 1);
       break;
     }
 
     const option = options.find((o) => o.canDo(args));
 
-    if (option == undefined) {
+    if (option === undefined) {
       reportErrorAndTerminate(`Invalid option ${args[0]}`, cli);
     } else {
       option.doNow(cli, args, values);
@@ -302,7 +306,7 @@ export class ValueCommand extends Command {
   }
 
   canDo(args: Array<string>) {
-    return (args.length > 0 && args[0] == this.name);
+    return (args.length > 0 && args[0] === this.name);
   }
 
   doNow(
@@ -312,13 +316,13 @@ export class ValueCommand extends Command {
   ): void {
     processOptions(cli, this.options, args, values);
 
-    if (args.length == 0) {
+    if (args.length === 0) {
       if (this.showValue.optional) {
         this.action(cli, undefined, values);
       } else {
         reportErrorAndTerminate(`${this.showValue.name} requires a value`, cli);
       }
-    } else if (args.length == 1) {
+    } else if (args.length === 1) {
       this.action(cli, args[0], values);
     } else {
       reportErrorAndTerminate(`Too many arguments ${args}`, cli);
@@ -334,11 +338,15 @@ export class ValueCommand extends Command {
       "USAGE:",
       PP.nest(
         4,
-        PP.text(this.name).pp(
-          (this.options.length == 0) ? PP.empty : "{OPTION}",
-        ).pp(usageName),
+        PP.hsep(
+          [
+            PP.text(this.name),
+            this.options.length === 0 ? PP.empty : "{OPTION}",
+            usageName,
+          ],
+        ),
       ),
-      (this.options.length == 0) ? PP.empty : PP.vcat(
+      (this.options.length === 0) ? PP.empty : PP.vcat(
         [
           "",
           "OPTION:",
@@ -366,12 +374,12 @@ export const helpCmd = new ValueCommand(
     value: string | undefined,
     _: Map<String, unknown>,
   ) => {
-    if (value == undefined) {
+    if (value === undefined) {
       show(cli);
     } else {
-      const cmd = cli.cmds.find((c) => c.name == value);
+      const cmd = cli.cmds.find((c) => c.name === value);
 
-      if (cmd == null) {
+      if (cmd === undefined) {
         reportErrorAndTerminate(`Unknown command ${value}`, cli);
       } else {
         PP.render(PP.vcat([cmd.show(), ""]), Deno.stdout);
