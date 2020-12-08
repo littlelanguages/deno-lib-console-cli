@@ -363,6 +363,83 @@ export class ValueCommand extends Command {
   }
 }
 
+export class ValuesCommand extends Command {
+  showValue: ShowValue;
+  private action: (
+    cli: Definition,
+    files: Array<string>,
+    options: Map<string, unknown>,
+  ) => void;
+
+  constructor(
+    name: string,
+    help: string,
+    options: Array<Option>,
+    showValue: ShowValue,
+    action: (
+      cli: Definition,
+      files: Array<string>,
+      options: Map<string, unknown>,
+    ) => void,
+  ) {
+    super(name, help, options);
+    this.showValue = showValue;
+    this.action = action;
+  }
+
+  canDo(args: Array<string>) {
+    return (args.length > 0 && args[0] === this.name);
+  }
+
+  doNow(
+    cli: Definition,
+    args: Array<string>,
+    values: Map<string, undefined>,
+  ): void {
+    processOptions(cli, this.options, args, values);
+
+    if (args.length === 0) {
+      if (this.showValue.optional) {
+        this.action(cli, [], values);
+      } else {
+        reportErrorAndTerminate(`${this.showValue.name} requires a value`, cli);
+      }
+    } else {
+      this.action(cli, args, values);
+    }
+  }
+
+  show(): PP.Doc {
+    const usageName = this.showValue.optional
+      ? `[${this.showValue.name}]`
+      : this.showValue.name;
+
+    return PP.vcat([
+      "USAGE:",
+      PP.nest(
+        4,
+        PP.hsep(
+          [
+            PP.text(this.name),
+            this.options.length === 0 ? PP.empty : "{OPTION}",
+            usageName,
+          ],
+        ),
+      ),
+      (this.options.length === 0) ? PP.empty : PP.vcat(
+        [
+          "",
+          "OPTION:",
+          PP.nest(4, PP.vcat(this.options.flatMap((o) => o.show()))),
+        ],
+      ),
+      "",
+      this.showValue.name,
+      PP.nest(4, this.showValue.help),
+    ]);
+  }
+}
+
 export const helpCmd = new ValueCommand(
   "help",
   "Provides detail help on a specific command",
