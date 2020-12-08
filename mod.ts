@@ -174,7 +174,10 @@ export class DoOption extends Option {
   }
 }
 
-export const reportErrorAndTerminate = (errorMsg: string, cli: Definition): void => {
+export const reportErrorAndTerminate = (
+  errorMsg: string,
+  cli: Definition,
+): void => {
   console.log(`Error: ${errorMsg}`);
   Deno.exit(-1);
 };
@@ -231,7 +234,7 @@ export const helpFlag = new DoOption(
   },
 );
 
-type ShowValue = {
+export type ShowValue = {
   name: string;
   optional: boolean;
   help: string;
@@ -259,12 +262,12 @@ export abstract class Command {
   abstract show(): PP.Doc;
 }
 
-function processOptions(
+export const processOptions = (
   cli: Definition,
   options: Array<Option>,
   args: Array<string>,
   values: Map<string, undefined>,
-): void {
+): void => {
   while (args.length > 0 && args[0].startsWith("-")) {
     if (args[0] === "--") {
       args.splice(0, 1);
@@ -279,7 +282,7 @@ function processOptions(
       option.doNow(cli, args, values);
     }
   }
-}
+};
 
 export class ValueCommand extends Command {
   showValue: ShowValue;
