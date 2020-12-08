@@ -174,10 +174,10 @@ export class DoOption extends Option {
   }
 }
 
-function reportErrorAndTerminate(errorMsg: string, cli: Definition): void {
+export const reportErrorAndTerminate = (errorMsg: string, cli: Definition): void => {
   console.log(`Error: ${errorMsg}`);
   Deno.exit(-1);
-}
+};
 
 function show(cli: Definition): Promise<void> {
   return PP.render(
